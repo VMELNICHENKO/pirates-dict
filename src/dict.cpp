@@ -43,13 +43,18 @@ void PiratesDict::load_dict( panda::string  filename ) {
      } else {
          this->process_node(doc, a);
     }
+
+    cout << "Object size: " << sizeof( this->value ) << endl;
+
+    cout << "Doc size: " << sizeof( &doc ) << endl;
+
     delete doc;
 }
 
 void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
     switch ( node->GetType() ) {
-    case rapidjson::Type::kObjectType :
-        this->type = ISOBJECT;
+    case rapidjson::Type::kObjectType : {
+        ObjectMap childs;
         for ( auto itr = node->MemberBegin(); itr != node->MemberEnd(); ++itr ) {
             string hkey = itr->name.GetString();
 
@@ -57,109 +62,145 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
 
             val.CopyFrom(itr->value, allocator);
             PiratesDict* child = new PiratesDict( &val, allocator);
-            this->childs.insert( pair<string, PiratesDict*>(hkey, child) );
+            childs.insert( pair<string, PiratesDict*>(hkey, child) );
         }
+        this->value = move(childs);
         break;
-
-    case rapidjson::Type::kArrayType :
-        this->type = ISARRAY;
-
+    }
+    case rapidjson::Type::kArrayType : {
+        vector<PiratesDict*> childs;
         for (auto itr = node->Begin(); itr != node->End(); ++itr) {
             PiratesDict* child = new PiratesDict( itr, allocator );
-            this->childs_arr.push_back(child);
+            childs.push_back( child );
         }
 
-        break;
+        this->value = move(childs);
 
-    case rapidjson::Type::kStringType :
-        this->type = ISSTRING;
-        //        this->Value = { node->GetString() };
-        this->str_val = node->GetString();
         break;
-
-    case rapidjson::Type::kNumberType :
-        if ( node->IsDouble() ) {
-            this->type = ISFLOAT;
-            this->float_val = node->GetDouble();
-        } else {
-            this->type = ISINT;
-            this->int_val = (int64_t)node->GetInt64();
-        }
+    }
+    case rapidjson::Type::kStringType : {
+        this->value = node->GetString();
         break;
-
-    case rapidjson::Type::kFalseType :
-        this->type = ISBOOL;
-        this->bool_val = false;
+    }
+    case rapidjson::Type::kNumberType : {
+        this->value = node->IsDouble() ? node->GetDouble() : (int64_t)node->GetInt64();
         break;
-
-    case rapidjson::Type::kTrueType :
-        this->type = ISBOOL;
-        this->bool_val = true;
+    }
+    case rapidjson::Type::kFalseType : {
+        this->value = false;
         break;
-
-    case rapidjson::Type::kNullType :
-        this->type = ISNILL;
+    }
+    case rapidjson::Type::kTrueType : {
+        this->value = true;
         break;
-
+    }
+    case rapidjson::Type::kNullType : {
+        break;
+    }
     }
 
 }
 
 PiratesDict* PiratesDict::get(panda::string key){
     cout << "get_child: " << key << endl;
-    switch ( this->type ) {
-    case ISOBJECT :
-        if ( this->childs.find(key) != this->childs.end() ) return this->childs.at(key);
-        break;
-    case ISARRAY :
-        int index;
-        try {
-            index = stoi( key );
-        } catch(std::invalid_argument& e){
-            cerr << "I'm an array. You key conversion was failed by reason `invalid argument`" << endl;
-            break;
 
-        } catch(std::out_of_range& e){
-            cerr << "I'm an array. You key conversion was failed by reason `out of range`" << endl;
-            break;
-        } catch(...) {
-            cerr << "I'm an array. You key conversion was failed by unknown reason" << endl;
-            break;
-        }
+    // visit( overloaded{
+    //         [level](const ObjectMap& m){
+    //             string level_tab ( level, 9 );
 
-        if ( index < this->childs_arr.size() ) {
-            return this->childs_arr[index];
-        }
-    }
+    //             cout << "{" << endl;
+    //             for ( auto const&[k,v] : m ) {
+    //                 cout << "\t" << level_tab << k << " => " ;
+    //                 v->dump( level + 1 );
+    //             }
+    //             cout << level_tab << "}" << endl;
+    //         },
+    //         [level](const ObjectArr& a){
+    //             string level_tab ( level, 9 );
+
+    //             cout << "[" << endl;
+    //             for ( auto const& v : a ) {
+    //                 cout << "\t" << level_tab;
+    //                 v->dump( level + 1 );
+    //             }
+    //             cout << level_tab << "]" << endl;
+    //         },
+    //         [](string s){
+    //             cout << "\"" << s << "\"" << endl;
+    //         },
+    //         [](auto v){
+    //             cout << v << endl;
+    //         },
+    //         [](bool v){
+    //             cout << ( v == true ? "true" : "false" ) << endl;
+    //         }
+    //     }, this->value );
+
+
+    // switch ( this->type ) {
+    // case ISOBJECT :
+    //     ObjectMap obj = get<ObjectMap>(this->value);
+    //     if ( obj.find(key) != obj.end() ) return obj.at(key);
+
+    //     //        if ( this->value.find(key) != this->value.end() ) return this->value.at(key);
+    //     break;
+    // case ISARRAY :
+    //     int index;
+    //     try {
+    //         index = stoi( key );
+    //     } catch(std::invalid_argument& e){
+    //         cerr << "I'm an array. You key conversion was failed by reason `invalid argument`" << endl;
+    //         break;
+
+    //     } catch(std::out_of_range& e){
+    //         cerr << "I'm an array. You key conversion was failed by reason `out of range`" << endl;
+    //         break;
+    //     } catch(...) {
+    //         cerr << "I'm an array. You key conversion was failed by unknown reason" << endl;
+    //         break;
+    //     }
+
+    //     vector<PiratesDict*> obj = get<vector<PiratesDict*>>(this->value);
+    //     if ( index < obj.size() ) {
+    //         return obj[index];
+    //     }
+    // }
     return new PiratesDict();
 }
 
 void PiratesDict::dump( uint32_t level) {
 
-    string level_tab ( level, 9 );
+    visit( overloaded{
+            [level](const ObjectMap& m){
+                string level_tab ( level, 9 );
 
-    switch ( this->type ) {
-    case ISOBJECT :
-        cout << "{" << endl;
-        for ( auto const&[k,v] : this->childs ) {
-            cout << "\t" << level_tab << k << " => " ;
-            v->dump( level + 1 );
-        }
-        cout << level_tab << "}" << endl;
-        break;
-    case ISARRAY  :
-        cout << "[" << endl;
-        for ( auto const& v : this->childs_arr ) {
-            cout << "\t" << level_tab;
-            v->dump( level + 1 );
-        }
-        cout << level_tab << "]" << endl;
-        break;
-    case ISBOOL   :  cout << ( this->bool_val == true ? "true" : "false" ) << endl; break;
-    case ISINT    :  cout << this->int_val                                 << endl; break;
-    case ISFLOAT  :  cout << this->float_val                               << endl; break;
-    case ISSTRING :  cout << "\"" << this->str_val << "\""                 << endl; break;
-    }
+                cout << "{" << endl;
+                for ( auto const&[k,v] : m ) {
+                    cout << "\t" << level_tab << k << " => " ;
+                    v->dump( level + 1 );
+                }
+                cout << level_tab << "}" << endl;
+            },
+            [level](const ObjectArr& a){
+                string level_tab ( level, 9 );
+
+                cout << "[" << endl;
+                for ( auto const& v : a ) {
+                    cout << "\t" << level_tab;
+                    v->dump( level + 1 );
+                }
+                cout << level_tab << "]" << endl;
+            },
+            [](string s){
+                cout << "\"" << s << "\"" << endl;
+            },
+            [](auto v){
+                cout << v << endl;
+            },
+            [](bool v){
+                cout << ( v == true ? "true" : "false" ) << endl;
+            }
+        }, this->value );
 }
 
 PiratesDict::PiratesDict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
@@ -167,12 +208,12 @@ PiratesDict::PiratesDict( rapidjson::Value* node, rapidjson::Document::Allocator
 }
 
 PiratesDict::~PiratesDict(){
-    switch ( this->type ) {
-    case ISOBJECT :
-        for ( auto const&[k,v] : this->childs )  delete v;
-        break;
-    case ISARRAY :
-        for ( auto const& v : this->childs_arr ) delete v;
-        break;
-    }
+    // switch ( this->type ) {
+    // case ISOBJECT :
+    //     for ( auto const&[k,v] : this->value )  delete v;
+    //     break;
+    // case ISARRAY :
+    //     for ( auto const& v : this->value ) delete v;
+    //     break;
+    // }
 }

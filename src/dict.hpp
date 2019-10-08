@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <variant>
 
 #include <panda/string.h>
 #include <panda/string_view.h>
@@ -13,26 +14,18 @@
 
 #include <xs.h>
 
-using namespace std;
-using namespace rapidjson;
-
-const int ISFLOAT  = 1;
-const int ISSTRING = 2;
-const int ISBOOL   = 3;
-const int ISARRAY  = 4;
-const int ISOBJECT = 5;
-const int ISINT    = 6;
-const int ISNILL   = 7;
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class PiratesDict {
 public:
     PiratesDict(){};
     PiratesDict( panda::string filename ) { load_dict( filename ); }
-    PiratesDict( Value* node, Document::AllocatorType& allocator );
+    PiratesDict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
     ~PiratesDict();
 
     void load_dict( panda::string filename );
-    void process_node( Value* node, Document::AllocatorType& allocator );
+    void process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
 
     // SV* export();
     PiratesDict* get( panda::string key );
@@ -40,19 +33,10 @@ public:
     // TODO get child by keys sequence ( array ref )
     void dump( uint32_t level = 0);
 private:
+    using ObjectMap = std::map<std::string, PiratesDict*>;
+    using ObjectArr = std::vector<PiratesDict*>;
 
-    uint8_t type = ISNILL;
-
-    /// TODO: only one may be initialized
-    //    union {
-        map<string, PiratesDict*> childs    ;
-        vector<PiratesDict*>      childs_arr;
-        string                    str_val   ;
-        int64_t                   int_val   ;
-        double                    float_val ;
-        bool                      bool_val  ;
-    //    };
-
+    std::variant<ObjectMap, ObjectArr, std::string, int64_t, double, bool> value;
 };
 
 namespace xs {
