@@ -1,0 +1,12 @@
+{
+  "ident":"test",
+  "testint": 42,
+  "testfloat": 42.42,
+  "teststr": "424242",
+  "testhash" : {
+    "test" : 1, "arr": [true, false], "obj":{ "qqq" : 111 }
+  },
+  "testarr": [ 1, 2, { "asd" : 42, "zxc" : 13 }, [ 1,2,3] ],
+  "testbool-1": false,
+  "testbool-2": true
+}
