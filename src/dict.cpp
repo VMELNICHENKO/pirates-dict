@@ -73,6 +73,7 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
 
     case rapidjson::Type::kStringType :
         this->type = ISSTRING;
+        //        this->Value = { node->GetString() };
         this->str_val = node->GetString();
         break;
 
@@ -108,33 +109,29 @@ PiratesDict* PiratesDict::get(panda::string key){
     cout << "get_child: " << key << endl;
     switch ( this->type ) {
     case ISOBJECT :
-        if ( this->childs.find(key) == this->childs.end() ) {
-            return new PiratesDict();
-        } else {
-            return this->childs.at(key);
-        }
+        if ( this->childs.find(key) != this->childs.end() ) return this->childs.at(key);
+        break;
     case ISARRAY :
         int index;
         try {
             index = stoi( key );
         } catch(std::invalid_argument& e){
             cerr << "I'm an array. You key conversion was failed by reason `invalid argument`" << endl;
-            return new PiratesDict();
+            break;
 
         } catch(std::out_of_range& e){
             cerr << "I'm an array. You key conversion was failed by reason `out of range`" << endl;
-            return new PiratesDict();
+            break;
         } catch(...) {
             cerr << "I'm an array. You key conversion was failed by unknown reason" << endl;
-            return new PiratesDict();
+            break;
         }
 
         if ( index < this->childs_arr.size() ) {
             return this->childs_arr[index];
-        } else {
-            return new PiratesDict();
         }
     }
+    return new PiratesDict();
 }
 
 void PiratesDict::dump( uint32_t level) {

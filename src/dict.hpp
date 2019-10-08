@@ -6,7 +6,6 @@
 #include <fstream>
 #include <sstream>
 
-//#include <helpers/json.h>
 #include <panda/string.h>
 #include <panda/string_view.h>
 #include <rapidjson/document.h>
@@ -45,12 +44,14 @@ private:
     uint8_t type = ISNILL;
 
     /// TODO: only one may be initialized
-    map<string, PiratesDict*> childs    ;
-    vector<PiratesDict*>      childs_arr;
-    string                    str_val   ;
-    int64_t                   int_val   ;
-    double                    float_val ;
-    bool                      bool_val  ;
+    //    union {
+        map<string, PiratesDict*> childs    ;
+        vector<PiratesDict*>      childs_arr;
+        string                    str_val   ;
+        int64_t                   int_val   ;
+        double                    float_val ;
+        bool                      bool_val  ;
+    //    };
 
 };
 
