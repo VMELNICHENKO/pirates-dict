@@ -20,7 +20,6 @@ void PiratesDict::load_dict( panda::string filename )
 
 void PiratesDict::dump()
 
-###PiratesDict * PiratesDict::get_child( panda::string key ){
-###PiratesDict* ret = THIS->get( key );
-###RETVAL = xs::out<>(ret);
-###}
+PiratesDict * PiratesDict::get_child( panda::string key )
+
+PiratesDict * PiratesDict::get_child_value( panda::string key )

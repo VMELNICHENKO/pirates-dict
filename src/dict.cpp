@@ -44,9 +44,9 @@ void PiratesDict::load_dict( panda::string  filename ) {
          this->process_node(doc, a);
     }
 
-    cout << "Object size: " << sizeof( this->value ) << endl;
+    // cout << "Object size: " << sizeof( this->value ) << endl;
 
-    cout << "Doc size: " << sizeof( &doc ) << endl;
+    // cout << "Doc size: " << sizeof( &doc ) << endl;
 
     delete doc;
 }
@@ -61,47 +61,35 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
             rapidjson::Value val(rapidjson::Type::kObjectType);
 
             val.CopyFrom(itr->value, allocator);
-            PiratesDict* child = new PiratesDict( &val, allocator);
-            childs.insert( pair<string, PiratesDict*>(hkey, child) );
+            //            PiratesDict* child = new PiratesDict( &val, allocator);
+            childs.insert( pair<string, PiratesDict>(hkey, PiratesDict( &val, allocator)) );
         }
         this->value = move(childs);
         break;
     }
     case rapidjson::Type::kArrayType : {
-        vector<PiratesDict*> childs;
+        vector<PiratesDict> childs;
         for (auto itr = node->Begin(); itr != node->End(); ++itr) {
-            PiratesDict* child = new PiratesDict( itr, allocator );
-            childs.push_back( child );
+            //            PiratesDict* child = new PiratesDict( itr, allocator );
+            childs.push_back( PiratesDict( itr, allocator ) );
         }
 
         this->value = move(childs);
-
-        break;
-    }
-    case rapidjson::Type::kStringType : {
-        this->value = node->GetString();
         break;
     }
     case rapidjson::Type::kNumberType : {
         this->value = node->IsDouble() ? node->GetDouble() : (int64_t)node->GetInt64();
         break;
     }
-    case rapidjson::Type::kFalseType : {
-        this->value = false;
-        break;
-    }
-    case rapidjson::Type::kTrueType : {
-        this->value = true;
-        break;
-    }
-    case rapidjson::Type::kNullType : {
-        break;
-    }
+    case rapidjson::Type::kStringType : { this->value = node->GetString(); break; }
+    case rapidjson::Type::kFalseType  : { this->value = false; break; }
+    case rapidjson::Type::kTrueType   : { this->value = true ; break; }
+    case rapidjson::Type::kNullType   : { break; }
     }
 
 }
 
-PiratesDict* PiratesDict::get(panda::string key){
+PiratesDict* PiratesDict::get_child(panda::string key){
     cout << "get_child: " << key << endl;
 
     // visit( overloaded{
@@ -168,26 +156,26 @@ PiratesDict* PiratesDict::get(panda::string key){
     return new PiratesDict();
 }
 
-void PiratesDict::dump( uint32_t level) {
+void PiratesDict::dump( uint32_t level) const {
 
     visit( overloaded{
-            [level](const ObjectMap& m){
+            [level](const ObjectMap& m) {
                 string level_tab ( level, 9 );
 
                 cout << "{" << endl;
                 for ( auto const&[k,v] : m ) {
                     cout << "\t" << level_tab << k << " => " ;
-                    v->dump( level + 1 );
+                    v.dump( level + 1 );
                 }
                 cout << level_tab << "}" << endl;
             },
-            [level](const ObjectArr& a){
+            [level](const ObjectArr& a) {
                 string level_tab ( level, 9 );
 
                 cout << "[" << endl;
                 for ( auto const& v : a ) {
                     cout << "\t" << level_tab;
-                    v->dump( level + 1 );
+                    v.dump( level + 1 );
                 }
                 cout << level_tab << "]" << endl;
             },
