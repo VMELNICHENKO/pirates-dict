@@ -28,8 +28,8 @@ public:
     void process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
 
     // SV* export();
-    PiratesDict* get_child( panda::string key );
-    PiratesDict* get_child_value( panda::string key ){};
+    const PiratesDict* get( const std::vector<std::string>& keys, uint64_t index = 0 ) const;
+    PiratesDict* get_child_value( panda::string key ){ return new PiratesDict;};
     // TODO get_child_val directly
     // TODO get child by keys sequence ( array ref )
     void dump( uint32_t level = 0) const;
@@ -48,7 +48,7 @@ namespace xs {
     // }
     //    template<> struct Typemap<PiratesDict*> : TypemapObject<PiratesDict*, PiratesDict*,ObjectTypePtr,ObjectStorageMG> {};
 
-    template <> struct Typemap<PiratesDict*> : TypemapObject<PiratesDict*, PiratesDict*, ObjectTypeForeignPtr, ObjectStorageMG> {
+    template <class T> struct Typemap<PiratesDict*, T> : TypemapObject<PiratesDict*, T, ObjectTypeForeignPtr, ObjectStorageMG> {
         static std::string package () { return "Pirates::Dict"; }
     };
 

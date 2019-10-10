@@ -18,8 +18,8 @@ PiratesDict * new(SV* CLASS, panda::string filename){
 
 void PiratesDict::load_dict( panda::string filename )
 
-void PiratesDict::dump()
+void PiratesDict::dump() : const
 
-PiratesDict * PiratesDict::get_child( panda::string key )
-
-PiratesDict * PiratesDict::get_child_value( panda::string key )
+const PiratesDict* PiratesDict::get( std::vector<std::string> kk, uint64_t index = 0 ) : const {
+    RETVAL = THIS->get( kk, index );
+}

@@ -13,10 +13,15 @@ $dict_obj->dump();
 
 #cmp_deeply $dict_obj->export, {};
 
-my $child = $dict_obj->get_child('testhash');
+my $child = $dict_obj->get(['testhash', 'obj']);
 #my $val   = $dict_obj->get_child_val('ident');
 
 note explain $child;
+$child->dump();
+$child = $dict_obj->get(['testhash', 'bad_key']);
+
+ok not defined $child;
+
 ok 1;
 
 done_testing();

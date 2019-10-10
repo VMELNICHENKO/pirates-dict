@@ -3,6 +3,7 @@
 #include <sstream>
 #include <dict.hpp>
 #include <string>
+#include <charconv>
 #include <panda/string.h>
 #include <panda/string_view.h>
 
@@ -89,75 +90,35 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
 
 }
 
-PiratesDict* PiratesDict::get_child(panda::string key){
+const PiratesDict* PiratesDict::get(const vector<string>& keys, uint64_t index ) const {
+
+    if ( index >= keys.size() ) return this;
+
+    string key = keys.at(index);
+
     cout << "get_child: " << key << endl;
-
-    // visit( overloaded{
-    //         [level](const ObjectMap& m){
-    //             string level_tab ( level, 9 );
-
-    //             cout << "{" << endl;
-    //             for ( auto const&[k,v] : m ) {
-    //                 cout << "\t" << level_tab << k << " => " ;
-    //                 v->dump( level + 1 );
-    //             }
-    //             cout << level_tab << "}" << endl;
-    //         },
-    //         [level](const ObjectArr& a){
-    //             string level_tab ( level, 9 );
-
-    //             cout << "[" << endl;
-    //             for ( auto const& v : a ) {
-    //                 cout << "\t" << level_tab;
-    //                 v->dump( level + 1 );
-    //             }
-    //             cout << level_tab << "]" << endl;
-    //         },
-    //         [](string s){
-    //             cout << "\"" << s << "\"" << endl;
-    //         },
-    //         [](auto v){
-    //             cout << v << endl;
-    //         },
-    //         [](bool v){
-    //             cout << ( v == true ? "true" : "false" ) << endl;
-    //         }
-    //     }, this->value );
-
-
-    // switch ( this->type ) {
-    // case ISOBJECT :
-    //     ObjectMap obj = get<ObjectMap>(this->value);
-    //     if ( obj.find(key) != obj.end() ) return obj.at(key);
-
-    //     //        if ( this->value.find(key) != this->value.end() ) return this->value.at(key);
-    //     break;
-    // case ISARRAY :
-    //     int index;
-    //     try {
-    //         index = stoi( key );
-    //     } catch(std::invalid_argument& e){
-    //         cerr << "I'm an array. You key conversion was failed by reason `invalid argument`" << endl;
-    //         break;
-
-    //     } catch(std::out_of_range& e){
-    //         cerr << "I'm an array. You key conversion was failed by reason `out of range`" << endl;
-    //         break;
-    //     } catch(...) {
-    //         cerr << "I'm an array. You key conversion was failed by unknown reason" << endl;
-    //         break;
-    //     }
-
-    //     vector<PiratesDict*> obj = get<vector<PiratesDict*>>(this->value);
-    //     if ( index < obj.size() ) {
-    //         return obj[index];
-    //     }
-    // }
-    return new PiratesDict();
+    return visit( overloaded{
+            [=](const ObjectMap& m) -> const PiratesDict* {
+                auto i = m.find(key);
+                if ( i == m.end() ) return nullptr;
+                return i->second.get( keys, index + 1 );
+            },
+            [=](const ObjectArr& a) -> const PiratesDict* {
+                uint64_t i;
+                if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == errc() ) {
+                    if ( i < a.size() ) {
+                        return a[i].get( keys, index + 1 );
+                    }
+                }
+                return nullptr;
+            },
+            [=](auto v) -> const PiratesDict* {
+                return this;
+            }
+        }, this->value );
 }
 
 void PiratesDict::dump( uint32_t level) const {
-
     visit( overloaded{
             [level](const ObjectMap& m) {
                 string level_tab ( level, 9 );
