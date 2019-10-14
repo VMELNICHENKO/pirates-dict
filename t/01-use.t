@@ -3,11 +3,11 @@ use Test::More;
 use Test::Deep;
 
 BEGIN {
-   use_ok('Pirates::Dict');
+   use_ok('CSGame::Dict');
 };
 
-my $dict_obj = Pirates::Dict->new('t/var/dict/heroes.json');
-isa_ok $dict_obj, 'Pirates::Dict';
+my $dict_obj = CSGame::Dict->new('t/var/dict/heroes.json');
+isa_ok $dict_obj, 'CSGame::Dict';
 
 $dict_obj->dump();
 

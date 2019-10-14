@@ -1,4 +1,4 @@
-package Pirates::Dict;
+package CSGame::Dict;
 use parent 'Export::XS';
 use 5.020;
 use strict;

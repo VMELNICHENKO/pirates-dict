@@ -17,39 +17,30 @@
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-class PiratesDict {
+class Dict {
 public:
-    PiratesDict(){};
-    PiratesDict( panda::string filename ) { load_dict( filename ); }
-    PiratesDict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
-    ~PiratesDict();
+    Dict(){};
+    Dict( panda::string filename ) { load_dict( filename ); }
+    Dict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
+    ~Dict(){};
 
     void load_dict( panda::string filename );
     void process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
 
-    // SV* export();
-    const PiratesDict* get( const std::vector<std::string>& keys, uint64_t index = 0 ) const;
-    PiratesDict* get_child_value( panda::string key ){ return new PiratesDict;};
-    // TODO get_child_val directly
-    // TODO get child by keys sequence ( array ref )
+    const Dict* get( const std::vector<std::string>& keys, uint64_t index = 0 ) const;
+
     void dump( uint32_t level = 0) const;
 private:
-    using ObjectMap = std::map<std::string, PiratesDict>;
-    using ObjectArr = std::vector<PiratesDict>;
+    using ObjectMap = std::map<std::string, Dict>;
+    using ObjectArr = std::vector<Dict>;
 
     std::variant<ObjectMap, ObjectArr, std::string, int64_t, double, bool> value;
 };
 
 namespace xs {
-    // struct Typemap<MyClass> {
-    //     static [inline] PiratesDict in(SV* arg) { ... }
-    //     static [inline] Sv out(const PiratesDict& var, const Sv& proto = {}) { ... }
-    //     static [inline] void destroy (const PiratesDict&, SV*) { ... }
-    // }
-    //    template<> struct Typemap<PiratesDict*> : TypemapObject<PiratesDict*, PiratesDict*,ObjectTypePtr,ObjectStorageMG> {};
 
-    template <class T> struct Typemap<PiratesDict*, T> : TypemapObject<PiratesDict*, T, ObjectTypeForeignPtr, ObjectStorageMG> {
-        static std::string package () { return "Pirates::Dict"; }
+    template <class T> struct Typemap<Dict*, T> : TypemapObject<Dict*, T, ObjectTypeForeignPtr, ObjectStorageMG> {
+        static std::string package () { return "CSGame::Dict"; }
     };
 
 }

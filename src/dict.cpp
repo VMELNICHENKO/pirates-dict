@@ -15,7 +15,7 @@
 
 using namespace std;
 
-void PiratesDict::load_dict( panda::string  filename ) {
+void Dict::load_dict( panda::string  filename ) {
     if ( filename.empty() ) return void();
 
     ifstream inFile(filename);
@@ -45,14 +45,10 @@ void PiratesDict::load_dict( panda::string  filename ) {
          this->process_node(doc, a);
     }
 
-    // cout << "Object size: " << sizeof( this->value ) << endl;
-
-    // cout << "Doc size: " << sizeof( &doc ) << endl;
-
     delete doc;
 }
 
-void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
+void Dict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
     switch ( node->GetType() ) {
     case rapidjson::Type::kObjectType : {
         ObjectMap childs;
@@ -62,17 +58,15 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
             rapidjson::Value val(rapidjson::Type::kObjectType);
 
             val.CopyFrom(itr->value, allocator);
-            //            PiratesDict* child = new PiratesDict( &val, allocator);
-            childs.insert( pair<string, PiratesDict>(hkey, PiratesDict( &val, allocator)) );
+            childs.insert( pair<string, Dict>(hkey, Dict( &val, allocator)) );
         }
         this->value = move(childs);
         break;
     }
     case rapidjson::Type::kArrayType : {
-        vector<PiratesDict> childs;
+        vector<Dict> childs;
         for (auto itr = node->Begin(); itr != node->End(); ++itr) {
-            //            PiratesDict* child = new PiratesDict( itr, allocator );
-            childs.push_back( PiratesDict( itr, allocator ) );
+            childs.push_back( Dict( itr, allocator ) );
         }
 
         this->value = move(childs);
@@ -90,7 +84,7 @@ void PiratesDict::process_node( rapidjson::Value* node, rapidjson::Document::All
 
 }
 
-const PiratesDict* PiratesDict::get(const vector<string>& keys, uint64_t index ) const {
+const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
 
     if ( index >= keys.size() ) return this;
 
@@ -98,12 +92,12 @@ const PiratesDict* PiratesDict::get(const vector<string>& keys, uint64_t index )
 
     cout << "get_child: " << key << endl;
     return visit( overloaded{
-            [=](const ObjectMap& m) -> const PiratesDict* {
+            [=](const ObjectMap& m) -> const Dict* {
                 auto i = m.find(key);
                 if ( i == m.end() ) return nullptr;
                 return i->second.get( keys, index + 1 );
             },
-            [=](const ObjectArr& a) -> const PiratesDict* {
+            [=](const ObjectArr& a) -> const Dict* {
                 uint64_t i;
                 if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == errc() ) {
                     if ( i < a.size() ) {
@@ -112,13 +106,13 @@ const PiratesDict* PiratesDict::get(const vector<string>& keys, uint64_t index )
                 }
                 return nullptr;
             },
-            [=](auto v) -> const PiratesDict* {
+            [=](auto v) -> const Dict* {
                 return this;
             }
         }, this->value );
 }
 
-void PiratesDict::dump( uint32_t level) const {
+void Dict::dump( uint32_t level) const {
     visit( overloaded{
             [level](const ObjectMap& m) {
                 string level_tab ( level, 9 );
@@ -152,17 +146,6 @@ void PiratesDict::dump( uint32_t level) const {
         }, this->value );
 }
 
-PiratesDict::PiratesDict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
+Dict::Dict( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator ) {
     this->process_node( node, allocator );
-}
-
-PiratesDict::~PiratesDict(){
-    // switch ( this->type ) {
-    // case ISOBJECT :
-    //     for ( auto const&[k,v] : this->value )  delete v;
-    //     break;
-    // case ISARRAY :
-    //     for ( auto const& v : this->value ) delete v;
-    //     break;
-    // }
 }

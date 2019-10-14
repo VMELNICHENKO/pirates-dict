@@ -3,7 +3,7 @@ use Config;
 use XS::Install;
 
 write_makefile(
-    NAME     => 'Pirates::Dict',
+    NAME     => 'CSGame::Dict',
     AUTHOR   => 'Vladimir Melnichenko',
     BIN_DEPS => ['Export::XS', 'XS::Framework', 'CPP::panda::lib'],
     CPLUS    => 17,
