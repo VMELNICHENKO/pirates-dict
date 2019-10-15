@@ -7,7 +7,8 @@ BEGIN {
 };
 
 my $dict_obj = CSGame::Dict->new('t/var/dict/heroes.json');
-#subtest init {
+
+subtest init => sub {
     isa_ok $dict_obj, 'CSGame::Dict';
 
     ok defined $dict_obj->get(['testhash', 'obj']);
@@ -15,19 +16,14 @@ my $dict_obj = CSGame::Dict->new('t/var/dict/heroes.json');
     ok not defined $dict_obj->get(['testhash', 'bad_key']);
     ok defined $dict_obj->get(['testhash', 'arr']);
     ok defined $dict_obj->get(['testarr' , 1]);
-ok defined $dict_obj->get(['testarr' , 2, 'asd']);
-$dict_obj->dump();
-note "==============================\n";
-
-#note explain $dict_obj->get(['testarr' , 2, 'asd', 'qqq'])->export();
-note "\n\n\n";
+    ok defined $dict_obj->get(['testarr' , 2, 'asd']);
     ok not defined $dict_obj->get(['testarr' , 2, 'asd', 'qqq']);
-#};
+};
 
-#subtest export {
-is $dict_obj->get(['testarr' , 2, 'asd'])->export(), 42;
+subtest export => sub {
+    is $dict_obj->get(['testarr' , 2, 'asd'])->export(), 42;
 
-my $str_child = $dict_obj->get(['ident']);
+    my $str_child = $dict_obj->get(['ident']);
     is $str_child->export(), "test";
 
     my $int_child = $dict_obj->get(['testint']);
@@ -60,6 +56,23 @@ my $str_child = $dict_obj->get(['ident']);
             },
             [1, 2, 3]
         ];
-#};
+};
+
+subtest get_value => sub {
+    is $dict_obj->get_value(['testfloat']), 42.42;
+    cmp_deeply $dict_obj->get_value(['testhash']),
+        {
+            arr  => [1, 0],
+            obj  => { qqq => 111, "undef" => undef },
+            test => 1
+        };
+    my $child = $dict_obj->get(['testhash']);
+    is $child->get_value(['test']), 1;
+
+    my $next = $child->get(['obj']);
+    is $next->get_value(['qqq']), 111;
+    is $next->get_value(['qqq', 'aaa']), undef;
+    is $next->get_value(['ddfdfdf']), undef;
+};
 
 done_testing();

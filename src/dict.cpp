@@ -85,9 +85,7 @@ void Dict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorT
 }
 
 const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
-    if ( index >= keys.size() ){
-        return this;
-    }
+    if ( index >= keys.size() ) return this;
 
     return visit( overloaded{
             [keys, index](const ObjectMap& m) -> const Dict* {
@@ -107,7 +105,7 @@ const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
                 }
                 return nullptr;
             },
-            [this, keys, index](auto v) -> const Dict* {
+            [](auto v) -> const Dict* {
                 return nullptr;
             }
         }, this->value );

@@ -16,6 +16,7 @@ using panda::string;
 using panda::string_view;
 
 Sv dict2sv (const Dict* dict) {
+    if ( dict == nullptr ) return Sv::undef;
     return std::visit( overloaded{
             [](const Dict::ObjectMap& m) -> Sv {
                 auto ret = Hash::create(m.size());
