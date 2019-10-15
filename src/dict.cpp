@@ -2,20 +2,12 @@
 #include <fstream>
 #include <sstream>
 #include <dict.hpp>
-#include <string>
 #include <charconv>
-#include <panda/string.h>
-#include <panda/string_view.h>
-
-#include <rapidjson/document.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/reader.h>
-
-#include <panda/excepted.h>
 
 using namespace std;
+using namespace json_tree;
 
-void Dict::load_dict( panda::string  filename ) {
+void Dict::load_dict( std::string  filename ) {
     if ( filename.empty() ) return void();
 
     ifstream inFile(filename);

@@ -1,20 +1,11 @@
 #include <dict.hpp>
 #include <xs/export.h>
-#include <xs.h>
+#include <xs/dict.h>
 
-#define MAX_ERR_SIZE   256
-
-namespace xs {
-    template <class T> struct Typemap<Dict*, T> : TypemapObject<Dict*, T, ObjectTypeForeignPtr, ObjectStorageMG> {
-        static std::string package () { return "CSGame::Dict"; }
-    };
-}
-
+using namespace json_tree;
 using namespace xs;
 
-using panda::string;
-using panda::string_view;
-
+namespace json_tree {
 Sv dict2sv (const Dict* dict) {
     if ( dict == nullptr ) return Sv::undef;
     return std::visit( overloaded{
@@ -39,16 +30,17 @@ Sv dict2sv (const Dict* dict) {
             },
     }, dict->value );
 }
+}
 
 MODULE = CSGame::Dict      PACKAGE = CSGame::Dict
 PROTOTYPES: DISABLE
 
-Dict * new(SV* CLASS, panda::string filename){
+Dict * new(SV* CLASS, std::string filename){
     PROTO = CLASS;
     RETVAL = new Dict(filename);
 }
 
-void Dict::load_dict( panda::string filename )
+void Dict::load_dict( std::string filename )
 
 void Dict::dump() : const
 
