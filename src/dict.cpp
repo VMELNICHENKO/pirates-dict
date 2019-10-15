@@ -76,7 +76,7 @@ void Dict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorT
         this->value = node->IsDouble() ? node->GetDouble() : (int64_t)node->GetInt64();
         break;
     }
-    case rapidjson::Type::kStringType : { this->value = node->GetString(); break; }
+    case rapidjson::Type::kStringType : { this->value = (string)node->GetString(); break; }
     case rapidjson::Type::kFalseType  : { this->value = false; break; }
     case rapidjson::Type::kTrueType   : { this->value = true ; break; }
     case rapidjson::Type::kNullType   : { break; }
@@ -88,16 +88,15 @@ const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
 
     if ( index >= keys.size() ) return this;
 
-    string key = keys.at(index);
-
-    cout << "get_child: " << key << endl;
     return visit( overloaded{
-            [=](const ObjectMap& m) -> const Dict* {
+            [keys, index](const ObjectMap& m) -> const Dict* {
+                string key = keys.at(index);
                 auto i = m.find(key);
                 if ( i == m.end() ) return nullptr;
                 return i->second.get( keys, index + 1 );
             },
-            [=](const ObjectArr& a) -> const Dict* {
+            [keys, index](const ObjectArr& a) -> const Dict* {
+                string key = keys.at(index);
                 uint64_t i;
                 if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == errc() ) {
                     if ( i < a.size() ) {
@@ -106,7 +105,10 @@ const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
                 }
                 return nullptr;
             },
-            [=](auto v) -> const Dict* {
+            [](Undef) -> const Dict* {
+                return nullptr;
+            },
+            [this](auto v) -> const Dict* {
                 return this;
             }
         }, this->value );
@@ -137,11 +139,14 @@ void Dict::dump( uint32_t level) const {
             [](string s){
                 cout << "\"" << s << "\"" << endl;
             },
-            [](auto v){
-                cout << v << endl;
+            [](Undef) {
+                cout << "null" << endl;;
             },
             [](bool v){
                 cout << ( v == true ? "true" : "false" ) << endl;
+            },
+            [](auto v){
+                cout << v << endl;
             }
         }, this->value );
 }
