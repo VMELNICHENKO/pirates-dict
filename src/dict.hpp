@@ -39,16 +39,13 @@ namespace json_tree {
                     [&](const ObjectArr& a) -> const Dict* {
                         panda::string_view key = keys[index];
                         uint64_t i;
-                        if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == std::errc() ) {
-                            if ( i < a.size() ) {
-                                return a[i].get( keys, index + 1 );
-                            }
-                        }
-                        return nullptr;
+                        auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i);
+                        if ( ec != std::errc() || i >= a.size() ) return nullptr;
+                        return a[i].get( keys, index + 1 );
                     },
-                        [](auto v) -> const Dict* {
-                            return nullptr;
-                        }
+                    [](auto v) -> const Dict* {
+                        return nullptr;
+                    }
                 }, this->value );
         }
 
