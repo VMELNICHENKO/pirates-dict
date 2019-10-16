@@ -7,6 +7,9 @@
 #include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 
+#include <panda/string.h>
+#include <panda/string_view.h>
+
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
@@ -22,7 +25,7 @@ namespace json_tree {
         void load_dict( std::string filename );
         void process_node( rapidjson::Value* node, rapidjson::Document::AllocatorType& allocator );
 
-        const Dict* get( const std::vector<std::string>& keys, uint64_t index = 0 ) const;
+        const Dict* get( const std::vector<panda::string>& keys, uint64_t index = 0 ) const;
 
         void dump( uint32_t level = 0) const;
 

@@ -1,9 +1,11 @@
 #include <dict.hpp>
 #include <xs/export.h>
 #include <xs/dict.h>
+#include <panda/string.h>
 
 using namespace json_tree;
 using namespace xs;
+using panda::string;
 
 namespace json_tree {
 Sv dict2sv (const Dict* dict) {
@@ -44,12 +46,20 @@ void Dict::load_dict( std::string filename )
 
 void Dict::dump() : const
 
-const Dict* Dict::get( std::vector<std::string> kk, uint64_t index = 0 ) : const {
-    RETVAL = THIS->get( kk, index );
+const Dict* Dict::get( ... ) : const {
+    std::vector<panda::string> list;
+    for ( int i = 1; i < items; ++i) {
+        list.push_back( xs::in<panda::string>(ST(i)) );
+    }
+    RETVAL = THIS->get( list, 0 );
 }
 
-Sv Dict::get_value( std::vector<std::string> kk, uint64_t index = 0 ) : const {
-    RETVAL = dict2sv(THIS->get( kk, index ));
+Sv Dict::get_value( ... ) : const {
+    std::vector<panda::string> list;
+    for ( int i = 1; i < items; ++i) {
+        list.push_back( xs::in<panda::string>(ST(i)) );
+    }
+    RETVAL = dict2sv(THIS->get( list, 0 ));
 }
 
 Sv Dict::export() : const {

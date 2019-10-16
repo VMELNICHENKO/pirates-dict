@@ -76,19 +76,17 @@ void Dict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorT
 
 }
 
-const Dict* Dict::get(const vector<string>& keys, uint64_t index ) const {
+const Dict* Dict::get( const vector<panda::string>& keys, uint64_t index ) const {
     if ( index >= keys.size() ) return this;
 
     return visit( overloaded{
-            [keys, index](const ObjectMap& m) -> const Dict* {
-                string key = keys.at(index);
-                auto i = m.find(key);
+            [&](const ObjectMap& m) -> const Dict* {
+                auto i = m.find(keys.at(index));
                 if ( i == m.end() ) return nullptr;
                 return i->second.get( keys, index + 1 );
             },
-            [keys, index](const ObjectArr& a) -> const Dict* {
-
-                string key = keys.at(index);
+            [&](const ObjectArr& a) -> const Dict* {
+                panda::string_view key = keys.at(index);
                 uint64_t i;
                 if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == errc() ) {
                     if ( i < a.size() ) {
