@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <dict.hpp>
-#include <charconv>
 
 using namespace std;
 using namespace json_tree;
@@ -74,31 +73,6 @@ void Dict::process_node( rapidjson::Value* node, rapidjson::Document::AllocatorT
     case rapidjson::Type::kNullType   : { break; }
     }
 
-}
-
-const Dict* Dict::get( const vector<panda::string>& keys, uint64_t index ) const {
-    if ( index >= keys.size() ) return this;
-
-    return visit( overloaded{
-            [&](const ObjectMap& m) -> const Dict* {
-                auto i = m.find(keys.at(index));
-                if ( i == m.end() ) return nullptr;
-                return i->second.get( keys, index + 1 );
-            },
-            [&](const ObjectArr& a) -> const Dict* {
-                panda::string_view key = keys.at(index);
-                uint64_t i;
-                if ( auto [p, ec] = std::from_chars(key.data(), key.data()+key.size(), i); ec == errc() ) {
-                    if ( i < a.size() ) {
-                        return a[i].get( keys, index + 1 );
-                    }
-                }
-                return nullptr;
-            },
-            [](auto v) -> const Dict* {
-                return nullptr;
-            }
-        }, this->value );
 }
 
 void Dict::dump( uint32_t level) const {

@@ -32,6 +32,13 @@ Sv dict2sv (const Dict* dict) {
             },
     }, dict->value );
 }
+
+struct StringArgsRange {
+    SV** args;
+    size_t _size;
+    size_t size() const { return _size; }
+    string operator[](size_t i) const {return xs::in<panda::string>(args[i]);}
+};
 }
 
 MODULE = CSGame::Dict      PACKAGE = CSGame::Dict
@@ -47,19 +54,11 @@ void Dict::load_dict( std::string filename )
 void Dict::dump() : const
 
 const Dict* Dict::get( ... ) : const {
-    std::vector<panda::string> list;
-    for ( int i = 1; i < items; ++i) {
-        list.push_back( xs::in<panda::string>(ST(i)) );
-    }
-    RETVAL = THIS->get( list, 0 );
+    RETVAL = THIS->get(StringArgsRange{&ST(1), items-1}, 0 );
 }
 
 Sv Dict::get_value( ... ) : const {
-    std::vector<panda::string> list;
-    for ( int i = 1; i < items; ++i) {
-        list.push_back( xs::in<panda::string>(ST(i)) );
-    }
-    RETVAL = dict2sv(THIS->get( list, 0 ));
+    RETVAL = dict2sv(THIS->get( StringArgsRange{&ST(1), items-1}, 0 ));
 }
 
 Sv Dict::export() : const {
